@@ -193,7 +193,7 @@ export async function POST(req: NextRequest) {
         ["Nationality:",     country || "—"],
         ["Current city:",    city || "—"],
         ["Date of Birth:",   dateOfBirth || "—"],
-        ["Height(cm) / Weight(kg):", `${heightValue || "—"} / ${weight || "—"}`],
+        ["Height/Weight:", `${heightValue || "—"}${"cm"} / ${weight || "—"}${"kg"}`],
         ["Waist(cm):",           waist || "—"],
         ["Bust(cm):",            bust || "—"],
       ],
