@@ -69,7 +69,7 @@ export default function ArtistForm() {
       <textarea name="experience" placeholder="Lotte World (2018-2019, Seoul), Chimelong (2021-2022, China)..." className="border p-2 rounded-xl w-full mb-5" rows={5} />
 
       <label className="text-m font-bold self-start">Additional information:</label>
-      <p className="text-gray-500 self-start">Here you can tell about your degree, awards or other additional skills yu have</p>
+      <p className="text-gray-500 self-start">Here you can tell about your degree, awards or other additional skills you have</p>
       <textarea name="additional" placeholder="Professional dancer with bachelor degree: Kyiv National University of Culture and Arts (2020-2024). Strong technique in modern and ballroom dancers. Skills in acrobatic, singing, acting etc....." className="border p-2 rounded-xl w-full mb-5" rows={5} />
 
       <label className="text-m font-bold self-start">Additional information:</label>
