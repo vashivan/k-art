@@ -1,0 +1,38 @@
+{
+  "name": "k-art",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev --turbopack",
+    "build": "next build --turbopack",
+    "start": "next start",
+    "lint": "eslint"
+  },
+  "dependencies": {
+    "@foliojs-fork/fontkit": "^1.9.2",
+    "@foliojs-fork/linebreak": "^1.1.2",
+    "fontkit": "^2.0.4",
+    "next": "15.5.3",
+    "nodemailer": "^7.0.6",
+    "pdf-lib": "^1.17.1",
+    "pdfkit": "^0.17.2",
+    "pdfkit-table": "^0.1.99",
+    "pdfmake": "^0.2.20",
+    "react": "19.1.0",
+    "react-dom": "19.1.0"
+  },
+  "devDependencies": {
+    "@eslint/eslintrc": "^3",
+    "@tailwindcss/postcss": "^4",
+    "@types/fontkit": "^2.0.8",
+    "@types/node": "^20",
+    "@types/nodemailer": "^7.0.1",
+    "@types/pdfmake": "^0.2.11",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "eslint": "^9",
+    "eslint-config-next": "15.5.3",
+    "tailwindcss": "^4",
+    "typescript": "^5"
+  }
+}
