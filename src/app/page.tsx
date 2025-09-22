@@ -1,102 +1,60 @@
-import Image from "next/image";
+// app/page.tsx
+import Link from "next/link";
 
 export default function Home() {
   return (
-    <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="font-mono list-inside list-decimal text-sm/6 text-center sm:text-left">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] font-mono font-semibold px-1 py-0.5 rounded">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
-
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+    <div className="font-sans min-h-screen flex flex-col">
+      {/* Navbar */}
+      <header className="w-full border-b border-gray-200">
+        <div className="max-w-6xl mx-auto flex items-center justify-between px-6 py-4">
+          <h1 className="text-xl font-bold text-blue-600">K-Art</h1>
+          <nav className="hidden sm:flex items-center gap-6 text-gray-600">
+            <Link href="/" className="hover:text-blue-600">Home</Link>
+            <Link href="/form" className="hover:text-blue-600">Application</Link>
+            <a href="#about" className="hover:text-blue-600">About</a>
+          </nav>
+          <Link
+            href="/form"
+            className="ml-4 px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-500 transition"
           >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+            Apply Now
+          </Link>
         </div>
+      </header>
+
+      {/* Hero Section */}
+      <main className="flex-1 flex flex-col items-center justify-center text-center px-6 py-16">
+        <h2 className="text-3xl sm:text-5xl font-extrabold tracking-tight text-gray-900 mb-6">
+          Become Part of <span className="text-blue-600">K-Art</span>
+        </h2>
+        <p className="max-w-2xl text-lg text-gray-600 mb-8">
+          Join our international community of artists and dancers.  
+          Fill out a short application form, and we will create a professional PDF profile for you,
+          sent directly to our partner companies.
+        </p>
+        <Link
+          href="/form"
+          className="px-6 py-3 rounded-xl bg-blue-600 text-white hover:bg-blue-500 transition text-lg font-medium"
+        >
+          Fill Out the Application
+        </Link>
       </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
+
+      {/* About Section */}
+      <section id="about" className="bg-gray-50 py-16 px-6 text-center">
+        <div className="max-w-3xl mx-auto">
+          <h3 className="text-2xl font-bold text-gray-900 mb-4">Why K-Art?</h3>
+          <p className="text-gray-600 text-lg">
+            We connect talented dancers with top companies and events across Korea and worldwide.  
+            Our platform makes applying easy and professional — you send us your details, 
+            we generate a polished PDF profile, and employers receive it directly.
+          </p>
+        </div>
+      </section>
+
+      {/* Footer */}
+      <footer className="w-full border-t border-gray-200 py-6 text-center text-sm text-gray-500">
+        © {new Date().getFullYear()} K-Art. All rights reserved.
       </footer>
     </div>
   );
