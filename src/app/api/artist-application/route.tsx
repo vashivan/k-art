@@ -6,17 +6,47 @@ import nodemailer from "nodemailer";
 import fs from "fs";
 import path from "path";
 import { PDFDocument, rgb } from "pdf-lib";
+
+async function sendToTelegram(pdfBuffer: Buffer, filename: string, caption: string) {
+  const token = process.env.TELEGRAM_BOT_TOKEN!;
+  const chatId = process.env.TELEGRAM_CHAT_ID!;
+  if (!token || !chatId) {
+    console.warn("❗ Telegram token or chat ID is missing");
+    return;
+  }
+
+  const uint8 = new Uint8Array(pdfBuffer);
+
+  const form = new FormData();
+  form.append("chat_id", chatId);
+  form.append("caption", caption);
+  form.append(
+    "document",
+    new Blob([uint8], { type: "application/pdf" }),
+    filename
+  );
+  const res = await fetch(`https://api.telegram.org/bot${token}/sendDocument`, {
+    method: "POST",
+    body: form,
+  });
+
+  if (!res.ok) {
+    const text = await res.text().catch(() => "");
+    console.error("❌ Telegram API error:", res.status, text);
+  }
+}
+
 // @ts-ignore
 const fontkit = require("fontkit");
 
 const BRAND = {
-  primary: rgb(0x11/255, 0x18/255, 0x27/255), // #111827
-  accent:  rgb(0x25/255, 0x63/255, 0xEB/255), // #2563EB
-  light:   rgb(0xEF/255, 0xF6/255, 0xFF/255), // #EFF6FF
-  border:  rgb(0xE5/255, 0xE7/255, 0xEB/255), // #E5E7EB
-  muted:   rgb(0x6B/255, 0x72/255, 0x80/255), // #6B7280
-  white:   rgb(1,1,1),
-  zebra:   rgb(0xF9/255, 0xFA/255, 0xFB/255), // #F9FAFB
+  primary: rgb(0x11 / 255, 0x18 / 255, 0x27 / 255), // #111827
+  accent: rgb(0x25 / 255, 0x63 / 255, 0xEB / 255), // #2563EB
+  light: rgb(0xEF / 255, 0xF6 / 255, 0xFF / 255), // #EFF6FF
+  border: rgb(0xE5 / 255, 0xE7 / 255, 0xEB / 255), // #E5E7EB
+  muted: rgb(0x6B / 255, 0x72 / 255, 0x80 / 255), // #6B7280
+  white: rgb(1, 1, 1),
+  zebra: rgb(0xF9 / 255, 0xFA / 255, 0xFB / 255), // #F9FAFB
 };
 
 const MARGIN = { top: 60, bottom: 50, left: 40, right: 40 };
@@ -61,10 +91,10 @@ function drawTwoColTable(opts: {
 
   for (let i = 0; i < rows.length; i++) {
     const [k, v] = rows[i];
-    const kLines = wrapText(k || "—", leftW - rowPad*2, font, fontSize);
-    const vLines = wrapText(v || "—", rightW - rowPad*2, font, fontSize);
+    const kLines = wrapText(k || "—", leftW - rowPad * 2, font, fontSize);
+    const vLines = wrapText(v || "—", rightW - rowPad * 2, font, fontSize);
     const lines = Math.max(kLines.length, vLines.length);
-    const rowH = lines * LINE_H(fontSize) + rowPad*2;
+    const rowH = lines * LINE_H(fontSize) + rowPad * 2;
 
     page.drawRectangle({
       x, y: cy, width: w, height: rowH,
@@ -96,22 +126,22 @@ export async function POST(req: NextRequest) {
   try {
     const formData = await req.formData();
 
-    const project     = safe(formData.get("project"));
-    const fullName    = safe(formData.get("fullName"));
-    const email       = safe(formData.get("email"));
-    const phone       = safe(formData.get("phone"));
-    const country     = safe(formData.get("country"));
-    const city        = safe(formData.get("city"));
+    const project = safe(formData.get("project"));
+    const fullName = safe(formData.get("fullName"));
+    const email = safe(formData.get("email"));
+    const phone = safe(formData.get("phone"));
+    const country = safe(formData.get("country"));
+    const city = safe(formData.get("city"));
     const dateOfBirth = safe(formData.get("dateOfBirth"));
     const heightValue = safe(formData.get("height"));
-    const weight      = safe(formData.get("weight"));
-    const waist       = safe(formData.get("waist"));
-    const bust        = safe(formData.get("bust"));
-    const instagram   = safe(formData.get("instagram"));
-    const position  = safe(formData.get("position"));
-    const experience  = safe(formData.get("experience"));
-    const additional  = safe(formData.get("additional"));
-    const following   = safe(formData.get("following"));
+    const weight = safe(formData.get("weight"));
+    const waist = safe(formData.get("waist"));
+    const bust = safe(formData.get("bust"));
+    const instagram = safe(formData.get("instagram"));
+    const position = safe(formData.get("position"));
+    const experience = safe(formData.get("experience"));
+    const additional = safe(formData.get("additional"));
+    const following = safe(formData.get("following"));
 
     let photoBytes: Uint8Array | null = null;
     const photo = formData.get("photo") as unknown as File | null;
@@ -120,12 +150,12 @@ export async function POST(req: NextRequest) {
     }
 
     let logoBytes: Uint8Array | null = null;
-    try { logoBytes = await readPublic("company-logo.png"); } catch {}
+    try { logoBytes = await readPublic("company-logo.png"); } catch { }
 
     let fontRegularBytes: Uint8Array, fontBoldBytes: Uint8Array;
     try {
       fontRegularBytes = await readPublic("fonts/Roboto-Regular.ttf");
-      fontBoldBytes    = await readPublic("fonts/Roboto-Bold.ttf");
+      fontBoldBytes = await readPublic("fonts/Roboto-Bold.ttf");
     } catch {
       return NextResponse.json({ ok: false, error: "Missing fonts in /public/fonts" }, { status: 400 });
     }
@@ -136,7 +166,7 @@ export async function POST(req: NextRequest) {
     const { width, height } = page.getSize();
 
     const fontRegular = await pdfDoc.embedFont(fontRegularBytes);
-    const fontBold    = await pdfDoc.embedFont(fontBoldBytes);
+    const fontBold = await pdfDoc.embedFont(fontBoldBytes);
 
     // Заголовок
     let cursorY = height - MARGIN.top;
@@ -171,9 +201,9 @@ export async function POST(req: NextRequest) {
 
     // Колонки
     const colGap = 16;
-    const leftW  = (width - MARGIN.left - MARGIN.right - colGap) * 0.62;
+    const leftW = (width - MARGIN.left - MARGIN.right - colGap) * 0.62;
     const rightW = (width - MARGIN.left - MARGIN.right - colGap) * 0.38;
-    const leftX  = MARGIN.left;
+    const leftX = MARGIN.left;
     const rightX = leftX + leftW + colGap;
 
     let cursorLeftY = bandY - 20; //
@@ -188,14 +218,14 @@ export async function POST(req: NextRequest) {
     cursorLeftY = drawTwoColTable({
       page, x: leftX, y: cursorLeftY, w: leftW, leftRatio: 0.32,
       rows: [
-        ["Email:",           email || "—"],
-        ["Phone:",           phone || "—"],
-        ["Nationality:",     country || "—"],
-        ["Current city:",    city || "—"],
-        ["Date of Birth:",   dateOfBirth || "—"],
+        ["Email:", email || "—"],
+        ["Phone:", phone || "—"],
+        ["Nationality:", country || "—"],
+        ["Current city:", city || "—"],
+        ["Date of Birth:", dateOfBirth || "—"],
         ["Height/Weight:", `${heightValue || "—"}${"cm"} / ${weight || "—"}${"kg"}`],
-        ["Waist(cm):",           waist || "—"],
-        ["Bust(cm):",            bust || "—"],
+        ["Waist(cm):", waist || "—"],
+        ["Bust(cm):", bust || "—"],
       ],
       font: fontRegular, fontSize: BODY, rowPad: 6,
     });
@@ -299,6 +329,12 @@ export async function POST(req: NextRequest) {
 
     const pdfBuffer = Buffer.from(await pdfDoc.save());
 
+    await sendToTelegram(
+      pdfBuffer,
+      `${(fullName || "candidate").replace(/\s+/g, "_")}_application.pdf`,
+      `📥 New Artist Application\n📍 Place: ${project || "—"}\n👤 Name: ${fullName || "—"}\n💃 Position: ${position || "—"}\n📧 Email: ${email || "—"}\n📞 Phone: ${phone || "—"}`
+    );
+
     // SMTP
     const transporter = nodemailer.createTransport({
       host: process.env.EMAIL_HOST!,
@@ -307,7 +343,7 @@ export async function POST(req: NextRequest) {
       auth: { user: process.env.EMAIL_USER!, pass: process.env.EMAIL_PASS! },
     });
 
-    const toCompany = "kartagency@gmail.com";
+    const toCompany = "vaniavaschuk@gmail.com";
     await transporter.sendMail({
       from: process.env.EMAIL_FROM || process.env.EMAIL_USER!,
       to: toCompany,
@@ -328,7 +364,7 @@ export async function POST(req: NextRequest) {
           html: `<p>Hi ${fullName || "there"}, thanks for your application! We have received your profile.</p>`,
           attachments: [{ filename: "Your_Application.pdf", content: pdfBuffer }],
         });
-      } catch {}
+      } catch { }
     }
 
     return NextResponse.json({ ok: true });
