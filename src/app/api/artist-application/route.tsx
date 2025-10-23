@@ -126,10 +126,19 @@ export async function POST(req: NextRequest) {
   try {
     const formData = await req.formData();
 
+    const telegramId = (a: string) => {
+      const tg = formData.get("telegram");
+      if (typeof tg === "string") {
+        return tg.startsWith("@") ? tg : `@${tg}`;
+      }
+      return "";
+    }
+
     const project = safe(formData.get("project"));
     const fullName = safe(formData.get("fullName"));
     const email = safe(formData.get("email"));
     const phone = safe(formData.get("phone"));
+    const telegram = safe(formData.get("telegram"));
     const country = safe(formData.get("country"));
     const city = safe(formData.get("city"));
     const dateOfBirth = safe(formData.get("dateOfBirth"));
@@ -332,40 +341,40 @@ export async function POST(req: NextRequest) {
     await sendToTelegram(
       pdfBuffer,
       `${(fullName || "candidate").replace(/\s+/g, "_")}_application.pdf`,
-      `📥 New Artist Application\n📍 Place: ${project || "—"}\n👤 Name: ${fullName || "—"}\n💃 Position: ${position || "—"}\n📧 Email: ${email || "—"}\n📞 Phone: ${phone || "—"}`
+      `📥 New Artist Application\n📍 Place: ${project || "—"}\n👤 Name: ${fullName || "—"}\n💃 Position: ${position || "—"}\n📧 Email: ${email || "—"}\n📞 Phone: ${phone || "—"}\n📬 Telegram: ${`${telegramId(telegram)}` || "-"}`
     );
 
-    // SMTP
-    const transporter = nodemailer.createTransport({
-      host: process.env.EMAIL_HOST!,
-      port: Number(process.env.EMAIL_PORT || 465),
-      secure: String(process.env.EMAIL_SECURE || "true") === "true",
-      auth: { user: process.env.EMAIL_USER!, pass: process.env.EMAIL_PASS! },
-    });
+    // // SMTP
+    // const transporter = nodemailer.createTransport({
+    //   host: process.env.EMAIL_HOST!,
+    //   port: Number(process.env.EMAIL_PORT || 465),
+    //   secure: String(process.env.EMAIL_SECURE || "true") === "true",
+    //   auth: { user: process.env.EMAIL_USER!, pass: process.env.EMAIL_PASS! },
+    // });
 
-    const toCompany = "vaniavaschuk@gmail.com";
-    await transporter.sendMail({
-      from: process.env.EMAIL_FROM || process.env.EMAIL_USER!,
-      to: toCompany,
-      subject: `New Artist Application — ${fullName || "Candidate"}`,
-      html: `<p><b>New application received.</b></p>
-             <p>Candidate: ${fullName || "—"}<br/>Position: ${position || "—"}<br/>Email: ${email || "—"}</p>
-             <p>Following text: ${following || "-"}</p>
-             <p>PDF attached.</p>`,
-      attachments: [{ filename: `${(fullName || "candidate").replace(/\s+/g, "_")}_application.pdf`, content: pdfBuffer }],
-    });
+    // const toCompany = "vaniavaschuk@gmail.com";
+    // await transporter.sendMail({
+    //   from: process.env.EMAIL_FROM || process.env.EMAIL_USER!,
+    //   to: toCompany,
+    //   subject: `New Artist Application — ${fullName || "Candidate"}`,
+    //   html: `<p><b>New application received.</b></p>
+    //          <p>Candidate: ${fullName || "—"}<br/>Position: ${position || "—"}<br/>Email: ${email || "—"}</p>
+    //          <p>Following text: ${following || "-"}</p>
+    //          <p>PDF attached.</p>`,
+    //   attachments: [{ filename: `${(fullName || "candidate").replace(/\s+/g, "_")}_application.pdf`, content: pdfBuffer }],
+    // });
 
-    if (email) {
-      try {
-        await transporter.sendMail({
-          from: process.env.EMAIL_FROM || process.env.EMAIL_USER!,
-          to: email,
-          subject: "Your application has been received",
-          html: `<p>Hi ${fullName || "there"}, thanks for your application! We have received your profile.</p>`,
-          attachments: [{ filename: "Your_Application.pdf", content: pdfBuffer }],
-        });
-      } catch { }
-    }
+    // if (email) {
+    //   try {
+    //     await transporter.sendMail({
+    //       from: process.env.EMAIL_FROM || process.env.EMAIL_USER!,
+    //       to: email,
+    //       subject: "Your application has been received",
+    //       html: `<p>Hi ${fullName || "there"}, thanks for your application! We have received your profile.</p>`,
+    //       attachments: [{ filename: "Your_Application.pdf", content: pdfBuffer }],
+    //     });
+    //   } catch { }
+    // }
 
     return NextResponse.json({ ok: true });
   } catch (err: any) {
