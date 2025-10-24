@@ -2,6 +2,7 @@
 export const runtime = "nodejs";
 
 import { NextRequest, NextResponse } from "next/server";
+import fs from "fs";
 import path from "path";
 import { PDFDocument, rgb } from "pdf-lib";
 

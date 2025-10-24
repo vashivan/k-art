@@ -12,7 +12,7 @@ export default function Home() {
         </h2>
         <p className="max-w-2xl text-lg text-white font-bold mb-8">
           Join our international community of artists and dancers.  
-          Fill out a short application form, and we will sent your profile directly to our partner companies.
+          Fill out a short application form to take part in audition.
         </p>
         <Link
           href="/form"
