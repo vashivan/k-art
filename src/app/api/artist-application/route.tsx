@@ -2,8 +2,6 @@
 export const runtime = "nodejs";
 
 import { NextRequest, NextResponse } from "next/server";
-import nodemailer from "nodemailer";
-import fs from "fs";
 import path from "path";
 import { PDFDocument, rgb } from "pdf-lib";
 
@@ -25,7 +23,8 @@ async function sendPhotoAndPdfToTelegram(
     const formPhoto = new FormData();
     formPhoto.append("chat_id", chatId);
     formPhoto.append("caption", caption);
-    formPhoto.append("photo", new Blob([photoBytes], { type: "image/jpeg" }));
+    formPhoto.append("photo", new Blob([photoBytes as any], { type: "image/jpeg" }));
+
 
     const resPhoto = await fetch(`https://api.telegram.org/bot${token}/sendPhoto`, {
       method: "POST",
@@ -369,38 +368,6 @@ export async function POST(req: NextRequest) {
       `${(fullName || "candidate").replace(/\s+/g, "_")}_application.pdf`,
       captions
     );
-
-    // // SMTP
-    // const transporter = nodemailer.createTransport({
-    //   host: process.env.EMAIL_HOST!,
-    //   port: Number(process.env.EMAIL_PORT || 465),
-    //   secure: String(process.env.EMAIL_SECURE || "true") === "true",
-    //   auth: { user: process.env.EMAIL_USER!, pass: process.env.EMAIL_PASS! },
-    // });
-
-    // const toCompany = "vaniavaschuk@gmail.com";
-    // await transporter.sendMail({
-    //   from: process.env.EMAIL_FROM || process.env.EMAIL_USER!,
-    //   to: toCompany,
-    //   subject: `New Artist Application — ${fullName || "Candidate"}`,
-    //   html: `<p><b>New application received.</b></p>
-    //          <p>Candidate: ${fullName || "—"}<br/>Position: ${position || "—"}<br/>Email: ${email || "—"}</p>
-    //          <p>Following text: ${following || "-"}</p>
-    //          <p>PDF attached.</p>`,
-    //   attachments: [{ filename: `${(fullName || "candidate").replace(/\s+/g, "_")}_application.pdf`, content: pdfBuffer }],
-    // });
-
-    // if (email) {
-    //   try {
-    //     await transporter.sendMail({
-    //       from: process.env.EMAIL_FROM || process.env.EMAIL_USER!,
-    //       to: email,
-    //       subject: "Your application has been received",
-    //       html: `<p>Hi ${fullName || "there"}, thanks for your application! We have received your profile.</p>`,
-    //       attachments: [{ filename: "Your_Application.pdf", content: pdfBuffer }],
-    //     });
-    //   } catch { }
-    // }
 
     return NextResponse.json({ ok: true });
   } catch (err: any) {
