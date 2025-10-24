@@ -7,34 +7,57 @@ import fs from "fs";
 import path from "path";
 import { PDFDocument, rgb } from "pdf-lib";
 
-async function sendToTelegram(pdfBuffer: Buffer, filename: string, caption: string) {
+async function sendPhotoAndPdfToTelegram(
+  photoBytes: Uint8Array | null,
+  pdfBuffer: Buffer,
+  filename: string,
+  caption: string
+) {
   const token = process.env.TELEGRAM_BOT_TOKEN!;
   const chatId = process.env.TELEGRAM_CHAT_ID!;
   if (!token || !chatId) {
-    console.warn("❗ Telegram token or chat ID is missing");
+    console.warn("⚠️ Telegram token or chat ID missing");
     return;
   }
 
-  const uint8 = new Uint8Array(pdfBuffer);
+  // 1️⃣ Якщо є фото — надсилаємо його
+  if (photoBytes) {
+    const formPhoto = new FormData();
+    formPhoto.append("chat_id", chatId);
+    formPhoto.append("caption", caption);
+    formPhoto.append("photo", new Blob([photoBytes], { type: "image/jpeg" }));
 
-  const form = new FormData();
-  form.append("chat_id", chatId);
-  form.append("caption", caption);
-  form.append(
-    "document",
-    new Blob([uint8], { type: "application/pdf" }),
-    filename
-  );
-  const res = await fetch(`https://api.telegram.org/bot${token}/sendDocument`, {
+    const resPhoto = await fetch(`https://api.telegram.org/bot${token}/sendPhoto`, {
+      method: "POST",
+      body: formPhoto,
+    });
+
+    if (!resPhoto.ok) {
+      const text = await resPhoto.text().catch(() => "");
+      console.error("❌ Telegram sendPhoto error:", resPhoto.status, text);
+    }
+  }
+
+  // 2️⃣ Надсилаємо PDF як документ
+  const uint8 = new Uint8Array(pdfBuffer);
+  const formPdf = new FormData();
+  formPdf.append("chat_id", chatId);
+  formPdf.append("caption", "📄 Full application PDF attached");
+  formPdf.append("document", new Blob([uint8], { type: "application/pdf" }), filename);
+
+  const resPdf = await fetch(`https://api.telegram.org/bot${token}/sendDocument`, {
     method: "POST",
-    body: form,
+    body: formPdf,
   });
 
-  if (!res.ok) {
-    const text = await res.text().catch(() => "");
-    console.error("❌ Telegram API error:", res.status, text);
+  if (!resPdf.ok) {
+    const text = await resPdf.text().catch(() => "");
+    console.error("❌ Telegram sendDocument error:", resPdf.status, text);
+  } else {
+    console.log("✅ Photo + PDF sent to Telegram");
   }
 }
+
 
 // @ts-ignore
 const fontkit = require("fontkit");
@@ -338,10 +361,13 @@ export async function POST(req: NextRequest) {
 
     const pdfBuffer = Buffer.from(await pdfDoc.save());
 
-    await sendToTelegram(
+    const captions = `📥 New Artist Application\n📍 Place: ${project || "—"}\n👤 Name: ${fullName || "—"}\n💃 Position: ${position || "—"}\n📧 Email: ${email || "—"}\n📞 Phone: ${phone || "—"}\n📬 Telegram: ${`${telegramId(telegram)}` || "-"}`;
+
+    await sendPhotoAndPdfToTelegram(
+      photoBytes,
       pdfBuffer,
       `${(fullName || "candidate").replace(/\s+/g, "_")}_application.pdf`,
-      `📥 New Artist Application\n📍 Place: ${project || "—"}\n👤 Name: ${fullName || "—"}\n💃 Position: ${position || "—"}\n📧 Email: ${email || "—"}\n📞 Phone: ${phone || "—"}\n📬 Telegram: ${`${telegramId(telegram)}` || "-"}`
+      captions
     );
 
     // // SMTP
