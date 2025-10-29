@@ -181,6 +181,7 @@ export async function POST(req: NextRequest) {
     const instagram = safe(formData.get("instagram"));
     const position = safe(formData.get("position"));
     const experience = safe(formData.get("experience"));
+    const education = safe(formData.get("education"));
     const additional = safe(formData.get("additional"));
 
     let photoBytes: Uint8Array | null = null;
@@ -326,6 +327,26 @@ export async function POST(req: NextRequest) {
     stackY -= expH + 20;
 
     // Additional
+    page.drawText("Education", {
+      x: MARGIN.left, y: stackY, size: H2, font: fontBold, color: BRAND.accent,
+    });
+    stackY -= H2 + 6;
+    const educationText = education && education.trim() ? education.trim() : "—";
+    const educationLines = wrapText(educationText, boxMaxW, fontRegular, 9);
+    const educationH = educationLines.length * LINE_H(9) + 16;
+    page.drawRectangle({
+      x: MARGIN.left, y: stackY - educationH + 4,
+      width: width - MARGIN.left - MARGIN.right, height: educationH,
+      borderColor: BRAND.border, borderWidth: 0.5,
+    });
+    let eduNy = stackY - 10;
+    for (const ln of educationLines) {
+      page.drawText(ln, { x: MARGIN.left + 6, y: eduNy, size: 9, font: fontRegular, color: BRAND.muted });
+      eduNy -= LINE_H(9);
+    }
+    stackY -= educationH + 20;
+
+       // Additional
     page.drawText("Additional", {
       x: MARGIN.left, y: stackY, size: H2, font: fontBold, color: BRAND.accent,
     });

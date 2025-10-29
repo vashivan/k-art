@@ -38,7 +38,7 @@ export default function ArtistForm() {
     <form onSubmit={handleSubmit} className="flex flex-col gap-3 max-w-xl justify-center items-center w-full">
       <label className="text-m font-bold self-start">Enter name of the place you want to work at:</label>
       <p className="text-gray-500 self-start text-sm">Fill in this field with the name of the place you want to apply to.</p>
-      <Input name="project" placeholder="Exp. Lotte World Seoul 2026" />
+      <Input name="project" placeholder="Lotte World Seoul 2026" />
 
       <label className="text-m font-bold self-start">Full name:</label>
       <p className="text-gray-500 self-start text-sm">Please, enter your real name exactly as in your passport.</p>
@@ -80,6 +80,10 @@ export default function ArtistForm() {
       <label className="text-m font-bold self-start">Experience:</label>
       <p className="text-gray-500 self-start text-sm">In format: Place of work (date from - date to, city/country)</p>
       <textarea name="experience" placeholder="Lotte World (2018-2019, Seoul), Chimelong (2021-2022, China)..." className="border-2 border-blue-900  p-2 w-full mb-5" rows={5} />
+
+      <label className="text-m font-bold self-start">Education (University or College):</label>
+      <p className="text-gray-500 self-start text-sm">Enter your degree(s), institution(s), field of study and years attended..</p>
+      <textarea name="education" placeholder="Bachelor of Arts in Dance — Kyiv National University of Culture and Arts (2016–2020)" className="border-2 border-blue-900  p-2 w-full mb-5" rows={5} />
 
       <label className="text-m font-bold self-start">Additional information:</label>
       <p className="text-gray-500 self-start text-sm">Here you can tell about your degree, awards or other additional skills you have</p>
