@@ -10,7 +10,7 @@ export default function Page() {
           Thank you for submitting your application!
         </h2>
         <p className="max-w-2xl text-lg text-white font-bold mb-8">
-          Thank you — we’ve received your application. Our team will review it and contact you with the next steps. We appreciate your interest in workin with K‑Art.
+          Thank you — we’ve received your application.<br/>Our team will review it and contact you with the next steps. We appreciate your interest in working with K‑Art.
         </p>
         <Link
           href="/"

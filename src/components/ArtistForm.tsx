@@ -82,21 +82,24 @@ export default function ArtistForm() {
       <textarea name="experience" placeholder="Lotte World (2018-2019, Seoul), Chimelong (2021-2022, China)..." className="border-2 border-blue-900  p-2 w-full mb-5" rows={5} />
 
       <label className="text-m font-bold self-start">Education (University or College):</label>
-      <p className="text-gray-500 self-start text-sm">Enter your degree(s), institution(s), field of study and years attended..</p>
+      <p className="text-gray-500 self-start text-sm">Enter your degree(s), institution(s), field of study and years attended.</p>
       <textarea name="education" placeholder="Bachelor of Arts in Dance — Kyiv National University of Culture and Arts (2016–2020)" className="border-2 border-blue-900  p-2 w-full mb-5" rows={5} />
 
       <label className="text-m font-bold self-start">Additional information:</label>
       <p className="text-gray-500 self-start text-sm">Here you can tell about your degree, awards or other additional skills you have</p>
-      <textarea name="additional" placeholder="Professional dancer with bachelor degree: Kyiv National University of Culture and Arts (2020-2024). Strong technique in modern and ballroom dancers. Skills in acrobatic, singing, acting etc....." className="border-2 border-blue-900  p-2 w-full mb-5" rows={5} />
+      <textarea name="additional" placeholder="Professional dancer with bachelor degree. Strong technique in modern and ballroom dancers. Skills in acrobatic, singing, acting etc....." className="border-2 border-blue-900  p-2 w-full mb-5" rows={5} />
 
       <label className="text-m font-bold self-start">Photo (portrait / headshot)</label>
-      <p className="text-gray-500 self-start text-sm">Click on the button below to upload picture</p>
+      <p className="text-gray-500 self-start text-sm">Click on the button below to upload picture.</p>
       <input name="photo" type="file" accept="image/*" className="bg-blue-950 p-2 w-full mb-5 cursor-pointer text-white flex items-center" />
+        <p className="text-gray-500 text-justify text-sm">
+          *by submitting this form I confirm that I agree to send my personal information and consent to its use by the company to contact me and assist in finding employment.
+        </p>
       <button type="submit" disabled={loading} className="bg-blue-950 text-white font-bold px-4 py-2 w-full cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed">
         {loading ? "Sending..." : "Submit"}
       </button>
-      {status === "success" && <p className="text-green-600">✅ Sent successfully</p>}
-      {status === "error" && <p className="text-red-600">❌ Something went wrong</p>}
+      {status === "success" && <p className="text-green-600">✅ Sent successfully. Thank you.</p>}
+      {status === "error" && <p className="text-red-600">❌ Something went wrong. Try again later.</p>}
     </form>
   );
 }
