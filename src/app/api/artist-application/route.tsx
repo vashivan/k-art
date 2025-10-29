@@ -4,6 +4,7 @@ export const runtime = "nodejs";
 import { NextRequest, NextResponse } from "next/server";
 import fs from "fs";
 import path from "path";
+import sharp from "sharp";
 import { PDFDocument, rgb } from "pdf-lib";
 
 async function sendPhotoAndPdfToTelegram(
@@ -157,6 +158,14 @@ export async function POST(req: NextRequest) {
       return "";
     }
 
+    const instagramId = (a: string) => {
+      const inst = formData.get("instagram");
+      if (typeof inst === "string") {
+        return inst.startsWith("@") ? inst : `@${inst}`;
+      }
+      return "";
+    }
+
     const project = safe(formData.get("project"));
     const fullName = safe(formData.get("fullName"));
     const email = safe(formData.get("email"));
@@ -173,12 +182,15 @@ export async function POST(req: NextRequest) {
     const position = safe(formData.get("position"));
     const experience = safe(formData.get("experience"));
     const additional = safe(formData.get("additional"));
-    const following = safe(formData.get("following"));
 
     let photoBytes: Uint8Array | null = null;
     const photo = formData.get("photo") as unknown as File | null;
+
     if (photo && typeof (photo as any)?.arrayBuffer === "function") {
-      photoBytes = new Uint8Array(await (photo as any).arrayBuffer());
+      const raw = new Uint8Array(await (photo as any).arrayBuffer());
+      // AUTO-rotate by EXIF and strip metadata
+      const fixed = await sharp(raw).rotate().jpeg({ quality: 88 }).toBuffer();
+      photoBytes = new Uint8Array(fixed);
     }
 
     let logoBytes: Uint8Array | null = null;
@@ -228,7 +240,7 @@ export async function POST(req: NextRequest) {
     const bandH = 28;
     const bandY = cursorY - bandH;
     page.drawRectangle({ x: bandX, y: bandY, width: bandW, height: bandH, color: BRAND.light });
-    const bandText = `Name: ${fullName || "—"}     •     Position: ${position || "—"}     •     Instagram: ${instagram || "—"}`;
+    const bandText = `Name: ${fullName || "—"}     •     Position: ${position || "—"}     •     Instagram: ${`${instagramId(instagram)}` || "—"}    •    Telegram: ${`${telegramId(telegram)}` || "—"}`;
     page.drawText(bandText, { x: bandX + 10, y: bandY + 9, size: BODY, font: fontRegular, color: BRAND.primary });
 
     // Колонки
@@ -245,7 +257,7 @@ export async function POST(req: NextRequest) {
     page.drawText("Contact & Basics", {
       x: leftX, y: cursorLeftY, size: H2, font: fontBold, color: BRAND.accent,
     });
-    cursorLeftY -= H2 + 208;
+    cursorLeftY -= H2 + 233.5;
 
     cursorLeftY = drawTwoColTable({
       page, x: leftX, y: cursorLeftY, w: leftW, leftRatio: 0.32,
@@ -255,9 +267,10 @@ export async function POST(req: NextRequest) {
         ["Nationality:", country || "—"],
         ["Current city:", city || "—"],
         ["Date of Birth:", dateOfBirth || "—"],
-        ["Height/Weight:", `${heightValue || "—"}${"cm"} / ${weight || "—"}${"kg"}`],
         ["Waist(cm):", waist || "—"],
         ["Bust(cm):", bust || "—"],
+        ["Weight(kg):", weight || "-"],
+        ["Height(cm):", heightValue || "—"],
       ],
       font: fontRegular, fontSize: BODY, rowPad: 6,
     });
@@ -270,7 +283,7 @@ export async function POST(req: NextRequest) {
     cursorRightY -= H2 + 4;
 
     const photoW = rightW;
-    const photoH = 204;
+    const photoH = 229.5;
     page.drawRectangle({
       x: rightX, y: cursorRightY - photoH, width: photoW, height: photoH,
       borderColor: BRAND.border, borderWidth: 0.5,
