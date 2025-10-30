@@ -11,28 +11,98 @@ export default function ArtistForm() {
   const [loading, setLoading] = useState(false);
   const [status, setStatus] = useState<"idle" | "success" | "error">("idle");
 
-  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
-    e.preventDefault();
-    setLoading(true);
-    setStatus("idle");
+// Стиснення + збереження EXIF-орієнтації, якщо можливо
+async function compressImage(
+  file: File,
+  { maxSide = 1600, quality = 0.85 }: { maxSide?: number; quality?: number } = {}
+): Promise<Blob> {
+  // Спроба через createImageBitmap (краще з орієнтацією)
+  try {
+    // @ts-ignore: imageOrientation опціонально підтримується
+    const bmp: ImageBitmap = await createImageBitmap(file, { imageOrientation: "from-image" });
 
-    const formData = new FormData(e.currentTarget);
+    const scale = Math.min(1, maxSide / Math.max(bmp.width, bmp.height));
+    const canvas = document.createElement("canvas");
+    canvas.width = Math.round(bmp.width * scale);
+    canvas.height = Math.round(bmp.height * scale);
 
-    try {
-      const res = await fetch("/api/artist-application", {
-        method: "POST",
-        body: formData,
-      });
-      setStatus(res.ok ? "success" : "error");
+    const ctx = canvas.getContext("2d")!;
+    ctx.drawImage(bmp, 0, 0, canvas.width, canvas.height);
+    bmp.close();
+
+    const blob: Blob = await new Promise((res) =>
+      canvas.toBlob((b) => res(b || new Blob()), "image/jpeg", quality)
+    );
+
+    return blob.size ? blob : file; // fallback якщо раптом пусто
+  } catch {
+    // Фолбек через <img> (деякі браузери можуть ігнорити EXIF в canvas)
+    const img = document.createElement("img");
+    const url = URL.createObjectURL(file);
+    await new Promise<void>((resolve, reject) => {
+      img.onload = () => resolve();
+      img.onerror = reject;
+      img.src = url;
+    });
+
+    const scale = Math.min(1, maxSide / Math.max(img.naturalWidth, img.naturalHeight));
+    const canvas = document.createElement("canvas");
+    canvas.width = Math.round(img.naturalWidth * scale);
+    canvas.height = Math.round(img.naturalHeight * scale);
+
+    const ctx = canvas.getContext("2d")!;
+    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+    URL.revokeObjectURL(url);
+
+    const blob: Blob = await new Promise((res) =>
+      canvas.toBlob((b) => res(b || new Blob()), "image/jpeg", quality)
+    );
+
+    return blob.size ? blob : file;
+  }
+}
+
+async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+  e.preventDefault();
+  setLoading(true);
+  setStatus("idle");
+
+  try {
+    const formEl = e.currentTarget;
+    const fd = new FormData(formEl);
+
+    // Стискаємо фото, якщо воно велике (наприклад > 3 МБ)
+    const input = formEl.elements.namedItem("photo") as HTMLInputElement | null;
+    const file = input?.files?.[0];
+
+    if (file && file.size > 3 * 1024 * 1024) {
+      // можна підкрутити поріг, розмір і якість
+      const compressed = await compressImage(file, { maxSide: 1600, quality: 0.85 });
+      // Підміняємо у FormData тим самим полем 'photo'
+      fd.set("photo", new File([compressed], "photo.jpg", { type: "image/jpeg" }));
+    }
+
+    const res = await fetch("/api/artist-application", {
+      method: "POST",
+      body: fd, // не став заголовок Content-Type — браузер виставить boundary сам
+    });
+
+    setStatus(res.ok ? "success" : "error");
+
+    // Перенаправлення після короткої паузи
+    if (res.ok) {
       setTimeout(() => {
         router.push("/success");
-      }, 2500);
-    } catch {
-      setStatus("error");
-    } finally {
-      setLoading(false);
+      }, 1200);
     }
+  } catch (err) {
+    console.error(err);
+    setStatus("error");
+  } finally {
+    setLoading(false);
   }
+}
+
 
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-3 max-w-xl justify-center items-center w-full">
