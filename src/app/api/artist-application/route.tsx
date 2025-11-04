@@ -7,6 +7,53 @@ import path from "path";
 import sharp from "sharp";
 import { PDFDocument, rgb } from "pdf-lib";
 
+async function SendToArtist(
+  pdfBuffer: Buffer,
+  chatId: string,
+  filename: string,
+) {
+  const token = process.env.TELEGRAM_BOT_TOKEN!;
+  const chat = chatId;
+  if (!token || !chatId) {
+    console.warn("⚠️ Telegram token or chat ID missing");
+    return;
+  }
+
+  // Надсилаємо PDF як документ
+  const uint8 = new Uint8Array(pdfBuffer);
+  const formPdf = new FormData();
+  formPdf.append("chat_id", chat);
+  formPdf.append("caption", "Thank you for your application!");
+  formPdf.append("document", new Blob([uint8], { type: "application/pdf" }), filename);
+
+  const resPdf = await fetch(`https://api.telegram.org/bot${token}/sendDocument`, {
+    method: "POST",
+    body: formPdf,
+  });
+
+  if (!resPdf.ok) {
+    const text = await resPdf.text().catch(() => "");
+    console.error("❌ Telegram sendDocument error:", resPdf.status, text);
+  } else {
+    console.log("✅ Photo + PDF sent to Telegram");
+  }
+
+  if (chat) {
+    try {
+      await fetch(`https://api.telegram.org/bot${process.env.TELEGRAM_BOT_TOKEN}/sendMessage`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          chat_id: chat,
+          text: `✅ Thank you!\n\nYour application has been received.\nOur manager will contact you soon via this chat.`,
+        }),
+      });
+    } catch (err) {
+      console.error("❌ Telegram send error:", err);
+    }
+  }
+}
+
 async function sendPhotoAndPdfToTelegram(
   photoBytes: Uint8Array | null,
   pdfBuffer: Buffer,
@@ -43,7 +90,6 @@ async function sendPhotoAndPdfToTelegram(
   const uint8 = new Uint8Array(pdfBuffer);
   const formPdf = new FormData();
   formPdf.append("chat_id", chatId);
-  formPdf.append("caption", "📄 Full application PDF attached");
   formPdf.append("document", new Blob([uint8], { type: "application/pdf" }), filename);
 
   const resPdf = await fetch(`https://api.telegram.org/bot${token}/sendDocument`, {
@@ -183,6 +229,8 @@ export async function POST(req: NextRequest) {
     const experience = safe(formData.get("experience"));
     const education = safe(formData.get("education"));
     const additional = safe(formData.get("additional"));
+    const chatId = safe(formData.get("telegramChatId"));
+    const username = safe(formData.get("telegramUsername"));
 
     let photoBytes: Uint8Array | null = null;
     const photo = formData.get("photo") as unknown as File | null;
@@ -346,7 +394,7 @@ export async function POST(req: NextRequest) {
     }
     stackY -= educationH + 20;
 
-       // Additional
+    // Additional
     page.drawText("Additional", {
       x: MARGIN.left, y: stackY, size: H2, font: fontBold, color: BRAND.accent,
     });
@@ -402,6 +450,12 @@ export async function POST(req: NextRequest) {
       pdfBuffer,
       `${(fullName || "candidate").replace(/\s+/g, "_")}_application.pdf`,
       captions
+    );
+
+    await SendToArtist(
+      pdfBuffer,
+      chatId,
+      `Your_Application_for_${project.replace(/\s+/g, "_")}.pdf`
     );
 
     return NextResponse.json({ ok: true });

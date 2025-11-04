@@ -11,8 +11,10 @@
   "dependencies": {
     "@foliojs-fork/fontkit": "^1.9.2",
     "@foliojs-fork/linebreak": "^1.1.2",
+    "dotenv": "^17.2.3",
     "fontkit": "^2.0.4",
     "next": "15.5.3",
+    "node-telegram-bot-api": "^0.66.0",
     "nodemailer": "^7.0.6",
     "pdf-lib": "^1.17.1",
     "pdfkit": "^0.17.2",
@@ -29,6 +31,7 @@
     "@tailwindcss/postcss": "^4",
     "@types/fontkit": "^2.0.8",
     "@types/node": "^20.19.17",
+    "@types/node-telegram-bot-api": "^0.64.12",
     "@types/nodemailer": "^7.0.1",
     "@types/pdfmake": "^0.2.11",
     "@types/react": "^19",
@@ -38,6 +41,7 @@
     "eslint-plugin-react": "^7.37.5",
     "eslint-plugin-react-hooks": "^7.0.1",
     "tailwindcss": "^4",
-    "typescript": "^5"
+    "ts-node": "^10.9.2",
+    "typescript": "^5.9.3"
   }
 }

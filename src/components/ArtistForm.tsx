@@ -1,111 +1,122 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import React from "react";
 import Input from "./ui/input";
+import { useSearchParams } from "next/navigation";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 
 export default function ArtistForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const [chatId, setChatId] = useState("");
+  const [username, setUsername] = useState("");
 
   const [loading, setLoading] = useState(false);
   const [status, setStatus] = useState<"idle" | "success" | "error">("idle");
 
-// Стиснення + збереження EXIF-орієнтації, якщо можливо
-async function compressImage(
-  file: File,
-  { maxSide = 1600, quality = 0.85 }: { maxSide?: number; quality?: number } = {}
-): Promise<Blob> {
-  // Спроба через createImageBitmap (краще з орієнтацією)
-  try {
-    // @ts-ignore: imageOrientation опціонально підтримується
-    const bmp: ImageBitmap = await createImageBitmap(file, { imageOrientation: "from-image" });
+  useEffect(() => {
+    setChatId(searchParams.get("tg_chat_id") || "");
+    setUsername(searchParams.get("tg_username") || "");
+  }, [searchParams]);
 
-    const scale = Math.min(1, maxSide / Math.max(bmp.width, bmp.height));
-    const canvas = document.createElement("canvas");
-    canvas.width = Math.round(bmp.width * scale);
-    canvas.height = Math.round(bmp.height * scale);
+  // Стиснення + збереження EXIF-орієнтації, якщо можливо
+  async function compressImage(
+    file: File,
+    { maxSide = 1600, quality = 0.85 }: { maxSide?: number; quality?: number } = {}
+  ): Promise<Blob> {
+    // Спроба через createImageBitmap (краще з орієнтацією)
+    try {
+      // @ts-ignore: imageOrientation опціонально підтримується
+      const bmp: ImageBitmap = await createImageBitmap(file, { imageOrientation: "from-image" });
 
-    const ctx = canvas.getContext("2d")!;
-    ctx.drawImage(bmp, 0, 0, canvas.width, canvas.height);
-    bmp.close();
+      const scale = Math.min(1, maxSide / Math.max(bmp.width, bmp.height));
+      const canvas = document.createElement("canvas");
+      canvas.width = Math.round(bmp.width * scale);
+      canvas.height = Math.round(bmp.height * scale);
 
-    const blob: Blob = await new Promise((res) =>
-      canvas.toBlob((b) => res(b || new Blob()), "image/jpeg", quality)
-    );
+      const ctx = canvas.getContext("2d")!;
+      ctx.drawImage(bmp, 0, 0, canvas.width, canvas.height);
+      bmp.close();
 
-    return blob.size ? blob : file; // fallback якщо раптом пусто
-  } catch {
-    // Фолбек через <img> (деякі браузери можуть ігнорити EXIF в canvas)
-    const img = document.createElement("img");
-    const url = URL.createObjectURL(file);
-    await new Promise<void>((resolve, reject) => {
-      img.onload = () => resolve();
-      img.onerror = reject;
-      img.src = url;
-    });
+      const blob: Blob = await new Promise((res) =>
+        canvas.toBlob((b) => res(b || new Blob()), "image/jpeg", quality)
+      );
 
-    const scale = Math.min(1, maxSide / Math.max(img.naturalWidth, img.naturalHeight));
-    const canvas = document.createElement("canvas");
-    canvas.width = Math.round(img.naturalWidth * scale);
-    canvas.height = Math.round(img.naturalHeight * scale);
+      return blob.size ? blob : file; // fallback якщо раптом пусто
+    } catch {
+      // Фолбек через <img> (деякі браузери можуть ігнорити EXIF в canvas)
+      const img = document.createElement("img");
+      const url = URL.createObjectURL(file);
+      await new Promise<void>((resolve, reject) => {
+        img.onload = () => resolve();
+        img.onerror = reject;
+        img.src = url;
+      });
 
-    const ctx = canvas.getContext("2d")!;
-    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-    URL.revokeObjectURL(url);
+      const scale = Math.min(1, maxSide / Math.max(img.naturalWidth, img.naturalHeight));
+      const canvas = document.createElement("canvas");
+      canvas.width = Math.round(img.naturalWidth * scale);
+      canvas.height = Math.round(img.naturalHeight * scale);
 
-    const blob: Blob = await new Promise((res) =>
-      canvas.toBlob((b) => res(b || new Blob()), "image/jpeg", quality)
-    );
+      const ctx = canvas.getContext("2d")!;
+      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+      URL.revokeObjectURL(url);
 
-    return blob.size ? blob : file;
-  }
-}
+      const blob: Blob = await new Promise((res) =>
+        canvas.toBlob((b) => res(b || new Blob()), "image/jpeg", quality)
+      );
 
-async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
-  e.preventDefault();
-  setLoading(true);
-  setStatus("idle");
-
-  try {
-    const formEl = e.currentTarget;
-    const fd = new FormData(formEl);
-
-    // Стискаємо фото, якщо воно велике (наприклад > 3 МБ)
-    const input = formEl.elements.namedItem("photo") as HTMLInputElement | null;
-    const file = input?.files?.[0];
-
-    if (file && file.size > 3 * 1024 * 1024) {
-      // можна підкрутити поріг, розмір і якість
-      const compressed = await compressImage(file, { maxSide: 1600, quality: 0.85 });
-      // Підміняємо у FormData тим самим полем 'photo'
-      fd.set("photo", new File([compressed], "photo.jpg", { type: "image/jpeg" }));
+      return blob.size ? blob : file;
     }
-
-    const res = await fetch("/api/artist-application", {
-      method: "POST",
-      body: fd, // не став заголовок Content-Type — браузер виставить boundary сам
-    });
-
-    setStatus(res.ok ? "success" : "error");
-
-    // Перенаправлення після короткої паузи
-    if (res.ok) {
-      setTimeout(() => {
-        router.push("/success");
-      }, 1200);
-    }
-  } catch (err) {
-    console.error(err);
-    setStatus("error");
-  } finally {
-    setLoading(false);
   }
-}
+
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    setLoading(true);
+    setStatus("idle");
+
+    try {
+      const formEl = e.currentTarget;
+      const fd = new FormData(formEl);
+
+      // Стискаємо фото, якщо воно велике (наприклад > 3 МБ)
+      const input = formEl.elements.namedItem("photo") as HTMLInputElement | null;
+      const file = input?.files?.[0];
+
+      if (file && file.size > 3 * 1024 * 1024) {
+        // можна підкрутити поріг, розмір і якість
+        const compressed = await compressImage(file, { maxSide: 1600, quality: 0.85 });
+        // Підміняємо у FormData тим самим полем 'photo'
+        fd.set("photo", new File([compressed], "photo.jpg", { type: "image/jpeg" }));
+      }
+
+      const res = await fetch("/api/artist-application", {
+        method: "POST",
+        body: fd, // не став заголовок Content-Type — браузер виставить boundary сам
+      });
+
+      setStatus(res.ok ? "success" : "error");
+
+      // Перенаправлення після короткої паузи
+      if (res.ok) {
+        setTimeout(() => {
+          router.push("/success");
+        }, 1200);
+      }
+    } catch (err) {
+      console.error(err);
+      setStatus("error");
+    } finally {
+      setLoading(false);
+    }
+  }
 
 
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-3 max-w-xl justify-center items-center w-full">
+      <input type="hidden" name="telegramChatId" value={chatId} />
+      <input type="hidden" name="telegramUsername" value={username} />
       <label className="text-m font-bold self-start">Enter name of the place you want to work at:</label>
       <p className="text-gray-500 self-start text-sm">Fill in this field with the name of the place you want to apply to.</p>
       <Input name="project" placeholder="Lotte World Seoul 2026" />
@@ -119,7 +130,7 @@ async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
       <Input name="email" type="email" placeholder="Email" />
 
       <label className="text-m font-bold self-start">Phone number:</label>
-       <p className="text-gray-500 self-start text-sm">Enter you phone number in international format, please. It helps us to contact with you properly without any hesitation.</p>
+      <p className="text-gray-500 self-start text-sm">Enter you phone number in international format, please. It helps us to contact with you properly without any hesitation.</p>
       <Input name="phone" placeholder="Phone" />
 
       <label className="text-m font-bold self-start">Nationality:</label>
@@ -162,9 +173,9 @@ async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
       <label className="text-m font-bold self-start">Photo (portrait / headshot)</label>
       <p className="text-gray-500 self-start text-sm">Click on the button below to upload picture.</p>
       <input name="photo" type="file" accept="image/*" className="bg-blue-950 p-2 w-full mb-5 cursor-pointer text-white flex items-center" />
-        <p className="text-gray-500 text-justify text-sm">
-          *by submitting this form I confirm that I agree to send my personal information and consent to its use by the company to contact me and assist in finding employment.
-        </p>
+      <p className="text-gray-500 text-justify text-sm">
+        *by submitting this form I confirm that I agree to send my personal information and consent to its use by the company to contact me and assist in finding employment.
+      </p>
       <button type="submit" disabled={loading} className="bg-blue-950 text-white font-bold px-4 py-2 w-full cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed">
         {loading ? "Sending..." : "Submit"}
       </button>
