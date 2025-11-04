@@ -23,7 +23,7 @@ async function SendToArtist(
   const uint8 = new Uint8Array(pdfBuffer);
   const formPdf = new FormData();
   formPdf.append("chat_id", chat);
-  formPdf.append("caption", "Thank you for your application!");
+  formPdf.append("caption", "Here is your application. You can heck it out!");
   formPdf.append("document", new Blob([uint8], { type: "application/pdf" }), filename);
 
   const resPdf = await fetch(`https://api.telegram.org/bot${token}/sendDocument`, {
@@ -45,7 +45,7 @@ async function SendToArtist(
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           chat_id: chat,
-          text: `✅ Thank you!\n\nYour application has been received.\nOur manager will contact you soon via this chat.`,
+          text: `✅ Thank you!\n\nYour application has been received.\nOur manager will contact you soon as possible.`,
         }),
       });
     } catch (err) {
