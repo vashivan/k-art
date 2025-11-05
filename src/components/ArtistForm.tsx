@@ -144,10 +144,15 @@ export default function ArtistForm() {
       <Input name="dateOfBirth" type="date" placeholder="Date of birth" />
 
       <label className="text-m font-bold self-start">Body shape:</label>
-      <Input name="height" placeholder="Height (e.g. 175 cm)" type="number" />
-      <Input name="weight" placeholder="Weight (e.g. 62 kg)" type="number" />
-      <Input name="waist" placeholder="Waist (e.g. 70 cm)" type="number" />
-      <Input name="bust" placeholder="Bust (e.g. 90 cm)" type="number" />
+      <p className="text-gray-500 self-start text-sm">Please enter body shape as a number only. Do not include letters or units — numbers only.</p>
+      <label className="text-m font-bold self-start text-sm">Height (cm):</label>
+      <Input name="height" placeholder="175" type="number" />
+      <label className="text-m font-bold self-start text-sm">Weight (kg):</label>
+      <Input name="weight" placeholder="62" type="number" />
+      <label className="text-m font-bold self-start text-sm">Waist (cm):</label>
+      <Input name="waist" placeholder="70" type="number" />
+      <label className="text-m font-bold self-start text-sm">Bust (cm):</label>
+      <Input name="bust" placeholder="90" type="number" />
 
       <label className="text-m font-bold self-start">Instagram name:</label>
       <Input name="instagram" placeholder="Instagram" />
