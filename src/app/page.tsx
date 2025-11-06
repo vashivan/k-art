@@ -1,10 +1,43 @@
 // app/page.tsx
+'use client'
+import React from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import styles from "../style/MainPage.module.scss";
+import Image from "next/image";
+
+const images = [
+  '/bg1.jpg',
+  '/bg2.jpg',
+  '/bg3.jpg',
+  '/bg4.jpg',
+];
 
 export default function Home() {
+  const [index, setIndex] = useState(0);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setIndex((prevIndex) => (prevIndex + 1) % images.length);
+    }, 3500); 
+
+    return () => clearInterval(interval);
+  });
+
   return (
     <div className={styles.container}>
+       {images.map((src, i) => (
+        <Image
+          key={i}
+          src={src}
+          alt={`Background ${i}`}
+          fill
+          priority={i === 0}
+          className={`object-cover md:object-fill transition-opacity duration-1200 ${
+            i === index ? "opacity-100" : "opacity-0"
+          }`}
+        />
+      ))}
       <div className={styles.container__black}></div>
       <main className={styles.container__main}>
         <h2 className="text-3xl sm:text-5xl font-extrabold tracking-tight text-white mb-6">
