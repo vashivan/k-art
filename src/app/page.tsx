@@ -19,33 +19,39 @@ export default function Home() {
   useEffect(() => {
     const interval = setInterval(() => {
       setIndex((prevIndex) => (prevIndex + 1) % images.length);
-    }, 3500); 
+    }, 3500);
 
     return () => clearInterval(interval);
   });
 
   return (
     <div className={styles.container}>
-       {images.map((src, i) => (
+      {images.map((src, i) => (
         <Image
           key={i}
           src={src}
           alt={`Background ${i}`}
           fill
           priority={i === 0}
-          className={`object-cover md:object-fill transition-opacity duration-1200 ${
-            i === index ? "opacity-100" : "opacity-0"
-          }`}
+          className={`object-cover md:object-fill transition-opacity duration-1200 ${i === index ? "opacity-100" : "opacity-0"
+            }`}
         />
       ))}
       <div className={styles.container__black}></div>
       <main className={styles.container__main}>
-        <h2 className="text-3xl sm:text-5xl font-extrabold tracking-tight text-white mb-6">
-          Become Part of <span className="text-blue-600">K-Art</span>
-        </h2>
-        <p className="max-w-2xl text-lg text-white font-bold mb-8">
-          Join our international community of artists and dancers.  
-          Fill out a short application form to take part in audition.
+        <p className="max-w-2xl text-lg md:text-xl text-white text-shadow-lg font-extrabold mb-8 leading-relaxed text-justify">
+          <span>
+            <Image
+              src="/logo.PNG"
+              alt="logo"
+              width={120}
+              height={0}
+              className="inline-block align-bottom mr-2"
+            />
+            <span>is a company </span>
+            <span>that provides performance opportunities and contracts for international artists in Korea.</span>
+          </span>{" "}
+          Join our global community of artists and dancers by filling out a short application form to take part in an audition.
         </p>
         <Link
           href="/form"

@@ -4,13 +4,14 @@ import React from "react";
 import Input from "./ui/input";
 import { useSearchParams } from "next/navigation";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
+
 
 export default function ArtistForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [chatId, setChatId] = useState("");
   const [username, setUsername] = useState("");
+  const [couple, setCouple] = useState(false);
 
   const [loading, setLoading] = useState(false);
   const [status, setStatus] = useState<"idle" | "success" | "error">("idle");
@@ -157,11 +158,31 @@ export default function ArtistForm() {
       <label className="text-m font-bold self-start">Instagram name:</label>
       <Input name="instagram" placeholder="Instagram" />
 
-      <label className="text-m font-bold self-start">Telegram id:</label>
-      <Input name="telegram" placeholder="Telegram" />
+      <label className="text-m font-bold self-start">Telegram ID:</label>
+      <Input name="telegram" placeholder="Telegram id" />
+
 
       <label className="text-m font-bold self-start">Position:</label>
       <Input name="position" placeholder="Dancer, acrobat, juggle etc." />
+
+      <label htmlFor="couple" className="text-m font-bold self-start">Applying as a couple?</label>
+      <div className="flex items-center gap-2">
+        <input
+          type="checkbox"
+          id="couple"
+          name="coupleApplication"
+          className="mb-2"
+          onChange={(e) => setCouple(e.target.checked)}
+        />
+        <p className="text-gray-500 self-start text-sm">Check this if you are applying together with a partner — we'll ask for partner's contact details below.</p>
+      </div>
+
+      {couple && (
+        <>
+          <label className="text-m font-bold self-start">Partner's Telegram ID:</label>
+          <Input name="partnerTelegram" placeholder="Partner's Telegram ID" />
+        </>
+      )}
 
       <label className="text-m font-bold self-start">Experience:</label>
       <p className="text-gray-500 self-start text-sm">In format: Place of work (date from - date to, city/country)</p>

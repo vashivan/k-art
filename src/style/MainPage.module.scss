@@ -5,8 +5,8 @@
   &__black {
     position: absolute;
     inset: 0;
-    background-color: black;
-    opacity: 0.5;
+    background-color: gray;
+    opacity: 0.7;
   }
 
   &__main {
@@ -24,9 +24,12 @@
 
     @media (min-width: 640px) {
       text-align: left;
-      align-items: flex-start;
-      padding-left: 10rem;
-      padding-top: 10rem;
+      padding-top: 7rem;
+      padding-inline: 5rem;
+    }
+
+    @media (min-width: 850px) {
+      font-size: 18px;
     }
   }
 
@@ -36,7 +39,7 @@
     width: 100%;
     padding: 1.5rem 0;
     text-align: center;
-    font-size: 0.875rem;
+    font-size: 1rem;
     color: white;
     margin-top: 2.5rem;
     display: flex;

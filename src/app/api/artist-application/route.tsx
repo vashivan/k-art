@@ -231,6 +231,7 @@ export async function POST(req: NextRequest) {
     const additional = safe(formData.get("additional"));
     const chatId = safe(formData.get("telegramChatId"));
     const username = safe(formData.get("telegramUsername"));
+    const couple = safe(formData.get("partnerTelegram"));
 
     let photoBytes: Uint8Array | null = null;
     const photo = formData.get("photo") as unknown as File | null;
@@ -443,7 +444,19 @@ export async function POST(req: NextRequest) {
 
     const pdfBuffer = Buffer.from(await pdfDoc.save());
 
-    const captions = `📥 New Artist Application\n📍 Place: ${project || "—"}\n👤 Name: ${fullName || "—"}\n💃 Position: ${position || "—"}\n📧 Email: ${email || "—"}\n📞 Phone: ${phone || "—"}\n📬 Telegram: ${`${telegramId(telegram)}` || "-"}`;
+  const captions = [
+  "📥 New Artist Application",
+  `📍 Place: ${project || "—"}`,
+  `👤 Name: ${fullName || "—"}`,
+  `💃 Position: ${position || "—"}`,
+  `📧 Email: ${email || "—"}`,
+  `📞 Phone: ${phone || "—"}`,
+  `📬 Telegram: ${telegram ? telegramId(telegram) : "—"}`,
+  couple ? `💑 Couple: ${telegramId(couple)}` : "",
+]
+  .filter(Boolean) // видаляє порожні рядки
+  .join("\n");
+
 
     await sendPhotoAndPdfToTelegram(
       photoBytes,
