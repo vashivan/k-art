@@ -197,7 +197,7 @@ export async function POST(req: NextRequest) {
     const formData = await req.formData();
 
     const telegramId = (a: string) => {
-      const tg = formData.get("telegram");
+      const tg = a;
       if (typeof tg === "string") {
         return tg.startsWith("@") ? tg : `@${tg}`;
       }
@@ -205,7 +205,7 @@ export async function POST(req: NextRequest) {
     }
 
     const instagramId = (a: string) => {
-      const inst = formData.get("instagram");
+      const inst = a;
       if (typeof inst === "string") {
         return inst.startsWith("@") ? inst : `@${inst}`;
       }
